@@ -1,107 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>NuulyReviews Counter</title>
-
-<style>
-body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: -apple-system, Arial, sans-serif;
-    background: linear-gradient(135deg, #ffd6ea, #ffb3da);
-}
-
-.card {
-    width: 720px;
-    padding: 50px;
-    text-align: center;
-    background: rgba(255,255,255,0.92);
-    border-radius: 28px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-}
-
-.title {
-    font-size: 44px;
-    font-weight: 700;
-    color: #d63384;
-}
-
-.count {
-    font-size: 110px;
-    font-weight: 800;
-    color: #d63384;
-}
-
-.milestone {
-    font-size: 26px;
-    color: #8a2b5c;
-    margin-top: 10px;
-}
-
-.row {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    margin-top: 30px;
-}
-
-.box {
-    text-align: center;
-}
-
-.label {
-    font-size: 18px;
-    color: #666;
-}
-
-.value {
-    font-size: 40px;
-    font-weight: 700;
-    color: #28a745;
-}
-
-.updated {
-    margin-top: 25px;
-    color: #666;
-    font-size: 18px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="card">
-
-    <div class="title">NuulyReviews Members</div>
-
-    <div id="count" class="count">Loading...</div>
-
-    <div id="milestone" class="milestone">Connecting...</div>
-
-    <div class="row">
-        <div class="box">
-            <div class="label">Today</div>
-            <div id="today" class="value">+0</div>
-        </div>
-
-        <div class="box">
-            <div class="label">Yesterday</div>
-            <div id="yesterday" class="value">+0</div>
-        </div>
-    </div>
-
-    <div id="updated" class="updated">Starting...</div>
-
-</div>
-
 <script>
 
 const TARGET = 10000;
-const KEY = "nuuly_tracker_v2";
+const KEY = "nuuly_tracker_v3";
 
 let lastValue = 0;
 
@@ -118,19 +18,19 @@ function save(data){
     localStorage.setItem(KEY, JSON.stringify(data));
 }
 
-// ✅ FIXED FETCH (CORS SAFE FOR GITHUB PAGES)
 async function fetchSubs(){
 
     const url =
-        "https://api.allorigins.win/raw?url=" +
-        encodeURIComponent(
-            "https://www.reddit.com/r/NuulyReviews/about.json"
-        );
+        "https://www.reddit.com/r/NuulyReviews/about.json?raw_json=1&cache=" +
+        Date.now();
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        method: "GET",
+        mode: "cors"
+    });
 
     if(!res.ok){
-        throw new Error("Network error");
+        throw new Error("Reddit blocked request");
     }
 
     const json = await res.json();
@@ -205,8 +105,10 @@ async function update(){
 
     } catch(e){
 
+        console.log(e);
+
         document.getElementById("updated").textContent =
-            "Connecting to Reddit...";
+            "Waiting for Reddit API...";
     }
 }
 
@@ -214,6 +116,3 @@ update();
 setInterval(update, 30000);
 
 </script>
-
-</body>
-</html>
