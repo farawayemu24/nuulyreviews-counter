@@ -101,9 +101,9 @@ body {
 <script>
 
 const TARGET = 10000;
-const KEY = "nuuly_tracker_v1";
+const KEY = "nuuly_tracker_v2";
 
-let last = 0;
+let lastValue = 0;
 
 function todayKey(){
     const d = new Date();
@@ -118,11 +118,20 @@ function save(data){
     localStorage.setItem(KEY, JSON.stringify(data));
 }
 
+// ✅ FIXED FETCH (CORS SAFE FOR GITHUB PAGES)
 async function fetchSubs(){
 
-    const res = await fetch(
-        "https://www.reddit.com/r/NuulyReviews/about.json?raw_json=1"
-    );
+    const url =
+        "https://api.allorigins.win/raw?url=" +
+        encodeURIComponent(
+            "https://www.reddit.com/r/NuulyReviews/about.json"
+        );
+
+    const res = await fetch(url);
+
+    if(!res.ok){
+        throw new Error("Network error");
+    }
 
     const json = await res.json();
 
@@ -173,12 +182,13 @@ async function update(){
         const subs = await fetchSubs();
         const data = rollover(subs);
 
-        if(last === 0){
-            last = subs;
+        if(lastValue === 0){
+            lastValue = subs;
             document.getElementById("count").textContent = subs.toLocaleString();
-        } else if(last !== subs){
-            animate(last, subs);
-            last = subs;
+        }
+        else if(lastValue !== subs){
+            animate(lastValue, subs);
+            lastValue = subs;
         }
 
         document.getElementById("today").textContent =
@@ -196,7 +206,7 @@ async function update(){
     } catch(e){
 
         document.getElementById("updated").textContent =
-            "Connecting...";
+            "Connecting to Reddit...";
     }
 }
 
